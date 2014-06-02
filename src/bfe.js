@@ -114,6 +114,7 @@ define(function(require, exports, module) {
     **/
     exports.require = require;
 
+    // 設定処理
     exports.setConfig = function(config) {
 
         editorconfig = config;
@@ -252,6 +253,7 @@ define(function(require, exports, module) {
 
     }
 
+    // メニュー付きエディターの作成
     exports.fulleditor = function (config, id) {
 
         editordiv = document.getElementById(id);
@@ -329,6 +331,7 @@ define(function(require, exports, module) {
         };
     };
 
+    // メニューなしエディタの作成
     exports.editor = function (config, id) {
 
         this.setConfig(config);
@@ -367,6 +370,7 @@ define(function(require, exports, module) {
         };
     };
 
+    // lookup関数の登録
     function setLookup(r) {
         if (r.scheme !== undefined) {
             bfelog.addMsg(new Error(), "INFO", "Setting up scheme " + r.scheme);
@@ -380,6 +384,7 @@ define(function(require, exports, module) {
         cbLoadTemplates();
     }
 
+    // 選択されたリソースの編集画面の作成
     function cbLoadTemplates() {
         $("#bfeditor-loader").width($("#bfeditor-loader").width()+5+"%");
         loadtemplatesANDlookupsCounter++;
@@ -420,6 +425,7 @@ define(function(require, exports, module) {
         }
     }
 
+    // 選択されたメニューの処理
     function menuSelect (spid) {
         //store = new rdfstore.Store();
         spnums = spid.replace('sp-', '').split("_");
@@ -454,6 +460,7 @@ define(function(require, exports, module) {
             data=bfestore
         }
     */
+    // リソーステンプレートに基いてプロパティ入力フォームを作成
     function getForm (loadTemplates) {
 
         var rt;
@@ -491,7 +498,7 @@ define(function(require, exports, module) {
             }
         }
 
-        // Let's create the form
+        // フォームの作成（Let's create the form）
         var form = $('<form>', {id: "bfeditor-form-" + fobject.id, class: "form-horizontal", role: "form"});
         var forEachFirst = true;
         fobject.resourceTemplates.forEach(function(rt) {
@@ -501,6 +508,7 @@ define(function(require, exports, module) {
             $resourcediv.append($resourcedivheading);
             rt.propertyTemplates.forEach(function(property) {
 
+                // 各プロパティはリソーステンプレートは別に一位に識別される必要がある
                 // Each property needs to be uniquely identified, separate from
                 // the resourceTemplate.
                 var pguid = guid();
@@ -511,6 +519,7 @@ define(function(require, exports, module) {
                 var $label = $('<label for="' + property.guid + '" class="col-sm-3 control-label">' + property.propertyLabel + '</label>');
                 var $saves = $('<div class="form-group"><div class="col-sm-3"></div><div class="col-sm-8"><div class="btn-toolbar" role="toolbar"></div></div></div>');
 
+                //リテラルプロパティ（TODO: なぜ input type="email" ?）
                 if (property.type == "literal") {
 
                     var $input = $('<div class="col-sm-8"><input type="email" class="form-control" id="' + property.guid + '" placeholder="' + property.propertyLabel + '" tabindex="' + tabIndices++ + '"></div>');
@@ -526,6 +535,7 @@ define(function(require, exports, module) {
                     $formgroup.append($saves);
                 }
 
+                // リソースプロパティ
                 if (property.type == "resource") {
 
                     if (_.has(property, "valueConstraint")) {
@@ -552,6 +562,8 @@ define(function(require, exports, module) {
                             }
                             button.append(ul);
                             */
+
+                            // 規定のリソースに入力が制限される場合
                             $buttondiv = $('<div class="col-sm-8" id="' + property.guid +'"></div>');
                             $buttongrp = $('<div class="btn-group btn-group-sm"></div>');
                             var vtRefs = property.valueConstraint.valueTemplateRefs;
@@ -567,6 +579,7 @@ define(function(require, exports, module) {
                                     var rtid = rt.guid;
                                     var pid = property.guid;
                                     var newResourceURI = editorconfig.baseURI + guid();
+                                    // 選択したリソースの設定画面を開く
                                     $b.click({fobjectid: fid, newResourceURI: newResourceURI, propertyguid: pid, template: vt}, function(event){
                                         //console.log(event.data.template);
                                         openModal(event.data.fobjectid, event.data.template, event.data.newResourceURI, event.data.propertyguid, []);
@@ -580,13 +593,20 @@ define(function(require, exports, module) {
                             $formgroup.append($buttondiv);
                             $formgroup.append($saves);
                         } else if (_.has(property.valueConstraint, "useValuesFrom")) {
+                            // useValuesFromの場合
 
+                            // リソース入力画面でなく、かつプロパティラベルが "Lookup"、かつ先頭プロパティの場合は処理しない
+                            // WIAの最初の入力画面が相当する
                             // Let's supress the lookup unless it is in a modal for now.
                             if (rt.embedType != "modal" && forEachFirst && property.propertyLabel.match(/lookup/i)) {
                                 forEachFirst = false;
                                 return;
                             }
 
+                            // 最初の入力画面で規定のリソースに入力が制限され、入力するリソースを
+                            // 選択した場合に現れるモーダル画面を作成
+
+                            // (1) Lookup フィールドの作成
                             var $inputdiv = $('<div class="col-sm-8"></div>');
                             var $input = $('<input type="text" class="typeahead form-control" data-propertyguid="' + property.guid + '" id="' + property.guid + '" placeholder="' + property.propertyLabel + '" tabindex="' + tabIndices++ + '">');
 
@@ -613,6 +633,7 @@ define(function(require, exports, module) {
                             }
                             */
 
+                            // (2) 「Save changes」ボタンの作成
                             if (rt.embedType == "modal" && forEachFirst && property.propertyLabel.match(/lookup/i)) {
                                 // This is the first propertty *and* it is a look up.
                                 // Let's treat it special-like.
@@ -624,6 +645,7 @@ define(function(require, exports, module) {
 
 
                         } else {
+                            // ここでは該当なし
                             // Type is resource, so should be a URI, but there is
                             // no "value template reference" or "use values from vocabularies"
                             // reference for it so just create label field
@@ -641,6 +663,7 @@ define(function(require, exports, module) {
 
                         }
                     } else {
+                        // ここでは該当なし
                         // Type is resource, so should be a URI, but there is
                         // no constraint for it so just create a label field.
                         var $input = $('<div class="col-sm-8"><input class="form-control" id="' + property.guid + '" placeholder="' + property.propertyLabel + '" tabindex="' + tabIndices++ + '"></div>');
@@ -891,6 +914,7 @@ define(function(require, exports, module) {
     // resourceURI is the resourceURI to assign or to edit
     // inputID is the ID of hte DOM element within the loadtemplate form
     // triples is the base data.
+    // Lookup機能付きのリソース入力用モーダルダイアログを作成
     function openModal(callingformobjectid, loadtemplate, resourceURI, inputID, triples) {
 
         // Modals
@@ -945,6 +969,7 @@ define(function(require, exports, module) {
             triplespassed = triples;
         }
         bfelog.addMsg(new Error(), "DEBUG", "triplespassed within modal", triplespassed);
+        // モーダル画面の検索部分（"OR"までを作成）
         var form = getForm([{
             templateGUID: useguid,
             resourceTemplateID: loadtemplate.id,
@@ -987,6 +1012,7 @@ define(function(require, exports, module) {
         $("#bfeditor-debug").html(JSON.stringify(bfestore.store, undefined, " "));
     }
 
+    // モーダルダイアログで入力されたデータを元のリソースに保存
     function setResourceFromModal(formobjectID, modalformid, resourceID, propertyguid, data) {
         /*
         console.log("Setting resource from modal");
@@ -1052,6 +1078,7 @@ define(function(require, exports, module) {
         $("#bfeditor-debug").html(JSON.stringify(bfestore.store, undefined, " "));
     }
 
+    // 入力済みのデータの表示（修正・削除ボタン付き）
     function editDeleteButtonGroup(bgvars) {
         /*
             vars should be an object, structured thusly:
@@ -1099,6 +1126,7 @@ define(function(require, exports, module) {
         return $buttongroup;
     }
 
+    // リテラルフィールドで入力されたデータを保存
     function setLiteral(formobjectID, resourceID, inputID) {
         var formobject = _.where(forms, {"id": formobjectID});
         formobject = formobject[0];
@@ -1149,6 +1177,7 @@ define(function(require, exports, module) {
         $("#bfeditor-debug").html(JSON.stringify(bfestore.store, undefined, " "));
     }
 
+    // URIフィールドで入力されたURIデータを保存
     function setResourceFromLabel(formobjectID, resourceID, inputID) {
         var formobject = _.where(forms, {"id": formobjectID});
         formobject = formobject[0];
@@ -1197,6 +1226,7 @@ define(function(require, exports, module) {
         $("#bfeditor-debug").html(JSON.stringify(bfestore.store, undefined, " "));
     }
 
+    // Lookup機能（Twitter Typeaheadを使用）
     function setTypeahead(input) {
         var form = $(input).closest("form").eq(0);
         var formid = $(input).closest("form").eq(0).attr("id");
@@ -1317,6 +1347,8 @@ define(function(require, exports, module) {
                 bfelog.addMsg(new Error(), "DEBUG", "Found lookup for datasetname: " + datasetname, lups[0]);
                 lu = lups[0].load;
             }
+            // 選択されたリソースのURIとAuthorizedAccessPointを設定した後、もう一度当該リソースを検索して
+            // その他関連のプロパティを設定する
             lu.getResource(resourceURI, p.propertyURI, suggestionobject, function(returntriples) {
                 bfelog.addMsg(new Error(), "DEBUG", "Triples returned from lookup's getResource func:", returntriples);
                 returntriples.forEach(function(t){
@@ -1392,12 +1424,14 @@ define(function(require, exports, module) {
         });
     }
 
+    // フィールドの編集画面を作成
     function editTriple(formobjectID, inputID, t) {
         var formobject = _.where(forms, {"id": formobjectID});
         formobject = formobject[0];
         bfelog.addMsg(new Error(), "DEBUG", "Editing triple: " + t.guid, t);
         $("#" + t.guid).empty();
 
+        // 非表示状態を解除
         var $el = $("#" + inputID, formobject.form);
         if ($el.is("input") && $el.hasClass( "typeahead" )) {
             var $inputs = $("#" + inputID, formobject.form).parent().find("input[data-propertyguid='" + inputID +"']");
@@ -1418,14 +1452,18 @@ define(function(require, exports, module) {
             });
         }
 
+        //　値の復元
         if ($el.is("input") && t.otype == "literal") {
             $el.val(t.o);
         }
+
+        // 保存済のトリプルを削除
         formobject.store = _.without(formobject.store, _.findWhere(formobject.store, {guid: t.guid}));
         bfestore.store = _.without(bfestore.store, _.findWhere(bfestore.store, {guid: t.guid}));
         $("#bfeditor-debug").html(JSON.stringify(bfestore.store, undefined, " "));
     }
 
+    // リソースの編集画面を作成
     function editTriples(formobjectID, inputID, triples) {
         bfelog.addMsg(new Error(), "DEBUG", "Editing triples", triples);
         var resourceTypes = _.where(triples, {p: "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"});
@@ -1445,6 +1483,7 @@ define(function(require, exports, module) {
 
     }
 
+    //　フィールドの削除
     function removeTriple(formobjectID, inputID, t) {
         var formobject = _.where(forms, {"id": formobjectID});
         formobject = formobject[0];
@@ -1475,6 +1514,7 @@ define(function(require, exports, module) {
         $("#bfeditor-debug").html(JSON.stringify(bfestore.store, undefined, " "));
     }
 
+    // リソースの削除
     function removeTriples(formobjectID, inputID, triples) {
         bfelog.addMsg(new Error(), "DEBUG", "Removing triples for formobjectID: " + formobjectID + " and inputID: " + inputID, triples);
         triples.forEach(function(triple) {
