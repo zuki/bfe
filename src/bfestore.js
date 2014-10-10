@@ -92,7 +92,7 @@ define(function(require, exports, module) {
             if (resource["@type"] !== undefined) {
                 predata += nlindent + "Type(s)";
                 resource["@type"].forEach(function(t) {
-                    predata += nlindentindent + t["@id"];
+                    predata += nlindentindent + t;
                 });
             }
             for (var t in resource) {
