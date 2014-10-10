@@ -122,6 +122,8 @@ define(function(require, exports, module) {
         // Set up logging
         bfelog.init(editorconfig);
 
+        // (1) 指定のプロファイル定義ファイルを読み込んでprofiles変数にセット
+        // (2) プロファイル中のリソーステンプレートを読み込んでresourceTemplates変数にセット
         for (var i=0; i < config.profiles.length; i++) {
             file = config.profiles[i];
             bfelog.addMsg(new Error(), "INFO", "Loading profile: " + config.profiles[i]);
@@ -144,6 +146,7 @@ define(function(require, exports, module) {
             });
         }
 
+        // 設定ファイルに lookups が指定されていれば lookups 変数にセット
         if (config.lookups !== undefined) {
             loadtemplatesANDlookupsCount = loadtemplatesANDlookupsCount + Object.keys(config.lookups).length;
             for (k in config.lookups) {
@@ -154,11 +157,13 @@ define(function(require, exports, module) {
                 });
             }
         }
+        // 設定ファイルに baseURI が指定されていない場合に baseURI をセット
         if (editorconfig.baseURI === undefined) {
             editorconfig.baseURI = window.location.protocol + "//" + window.location.host + "/";
         }
         bfelog.addMsg(new Error(), "INFO", "baseURI is " + editorconfig.baseURI);
 
+        // 設定ファイルに load が指定されていれば指定のトリプルをセット
         if (config.load !== undefined) {
             loadtemplatesANDlookupsCount = loadtemplatesANDlookupsCount + config.load.length;
             config.load.forEach(function(l){
@@ -253,7 +258,18 @@ define(function(require, exports, module) {
 
     }
 
-    // メニュー付きエディターの作成
+    /*
+     トリプルオブジェクト
+       t.guid: トリプルのID（システムが付与）
+       t.rtID: リソーステンプレートURI
+       t.s: 主語のURI
+       t.p: 述語のURI
+       t.o: 目的語 （URIか文字列）
+       t.otype: 目的語のタイプ ('uri' | 'literal')
+       t.olang: 目的語の言語（literalのみ）
+    */
+    
+    // メニュー付きエディターの作成（これが index.html から呼び出されて処理が開始される）
     exports.fulleditor = function (config, id) {
 
         editordiv = document.getElementById(id);
@@ -276,8 +292,8 @@ define(function(require, exports, module) {
 
         $(editordiv).append($rowdiv);
 
-        this.setConfig(config);
-
+        this.setConfig(config);  // 設定ファイルの処理
+        // 処理メニューの作成
         for (var h=0; h < config.startingPoints.length; h++) {
             var sp = config.startingPoints[h];
             var $menuul = $('<ul>', {class: "nav nav-stacked"});
@@ -453,7 +469,7 @@ define(function(require, exports, module) {
     /*
     loadTemplates is an array of objects, each with this structure:
         {
-            templateguid=guid,
+            templateGUID=guid,
             resourceTemplateID=resourceTemplateID,
             resourceuri="",
             embedType=modal|page
@@ -508,7 +524,7 @@ define(function(require, exports, module) {
             $resourcediv.append($resourcedivheading);
             rt.propertyTemplates.forEach(function(property) {
 
-                // 各プロパティはリソーステンプレートは別に一位に識別される必要がある
+                // 各プロパティはリソーステンプレートとは別に一位に識別される必要がある
                 // Each property needs to be uniquely identified, separate from
                 // the resourceTemplate.
                 var pguid = guid();
@@ -1198,8 +1214,8 @@ define(function(require, exports, module) {
                     triple.o = data;
                     triple.otype = "uri";
 
-                    bfestore.store.push(triple);
-                    formobject.store.push(triple);
+                    bfestore.store.push(triple);        // 全体用
+                    formobject.store.push(triple);      // フィールド用
 
                     var $formgroup = $("#" + inputID, formobject.form).closest(".form-group");
                     var save = $formgroup.find(".btn-toolbar")[0];
@@ -1214,7 +1230,8 @@ define(function(require, exports, module) {
                     };
                     var $buttongroup = editDeleteButtonGroup(bgvars);
 
-                    $(save).append($buttongroup);
+                    $(save).append($buttongroup);     // 保存済みデータ表示(○☓付き)
+                    // 入力欄をクリアして、繰り返し不可のプロパティは入力不可とする
                     $("#" + inputID, formobject.form).val("");
                     if (properties[0].repeatable !== undefined && properties[0].repeatable == "false") {
                         $("#" + inputID, formobject.form).attr("disabled", true);
