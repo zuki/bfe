@@ -1905,7 +1905,9 @@ var Y=s();typeof define=="function"&&typeof define.amd=="object"&&define.amd?(G.
                 }
                 j[prop] = [];
                 groupedProperties[propertyURI].forEach(function(r) {
-                    if (r.otype == "uri") {
+                    if (prop == "@type" && r.otype == "uri") {
+                        j[prop].push(r.o);
+                    } else if (r.otype == "uri") {
                         j[prop].push({"@id": r.o});
                     } else {
                         var o = {}
