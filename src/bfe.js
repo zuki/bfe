@@ -539,6 +539,12 @@ define(function(require, exports, module) {
                 if (property.type == "literal") {
 
                     var $input = $('<div class="col-sm-8"><input type="email" class="form-control" id="' + property.guid + '" placeholder="' + property.propertyLabel + '" tabindex="' + tabIndices++ + '"></div>');
+                    $input.bind("keydown keypress", function(event) {
+                        if (event.which === 13) {
+                            setLiteral(fobject.id, rt.guid, property.guid);
+                            event.preventDefault();
+                        }
+                    });
 
                     $button = $('<button type="button" class="btn btn-default" tabindex="' + tabIndices++ + '">Set</button>');
                     $button.click(function(){
@@ -666,6 +672,12 @@ define(function(require, exports, module) {
                             // no "value template reference" or "use values from vocabularies"
                             // reference for it so just create label field
                             var $input = $('<div class="col-sm-8"><input class="form-control" id="' + property.guid + '" placeholder="' + property.propertyLabel + '" tabindex="' + tabIndices++ + '"></div>');
+                            $input.bind("keydown keypress", function(event) {
+                                if (event.which === 13) {
+                                    setLiteral(fobject.id, rt.guid, property.guid);
+                                    event.preventDefault();
+                                }
+                            });
 
                             $button = $('<button type="button" class="btn btn-default" tabindex="' + tabIndices++ + '">Set</button>');
                             $button.click(function(){
@@ -683,6 +695,12 @@ define(function(require, exports, module) {
                         // Type is resource, so should be a URI, but there is
                         // no constraint for it so just create a label field.
                         var $input = $('<div class="col-sm-8"><input class="form-control" id="' + property.guid + '" placeholder="' + property.propertyLabel + '" tabindex="' + tabIndices++ + '"></div>');
+                        $input.bind("keydown keypress", function(event) {
+                            if (event.which === 13) {
+                                setLiteral(fobject.id, rt.guid, property.guid);
+                                event.preventDefault();
+                            }
+                        });
 
                         $button = $('<button type="button" class="btn btn-default" tabindex="' + tabIndices++ + '">Set</button>');
                             $button.click(function(){
